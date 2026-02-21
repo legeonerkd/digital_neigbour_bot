@@ -553,9 +553,10 @@ def reminder_line(reminder: Reminder, index: int, user_offset: int) -> str:
 
 
 def build_reminders_text(reminders: List[Reminder], user_offset: int) -> str:
-    lines = [f"Ваши напоминания ({format_utc_offset(user_offset)}):"]
+    lines = [f"⏰ Ваши напоминания ({format_utc_offset(user_offset)})"]
     for idx, reminder in enumerate(reminders, start=1):
         lines.append(reminder_line(reminder, idx, user_offset))
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -602,7 +603,7 @@ def format_services(category_name: str, services: list[tuple[int, str, str, str 
         query = f"{title}, {address}" if address else f"{title}, Limassol, Cyprus"
         return "https://www.google.com/maps/search/?api=1&query=" + urlparse.quote(query)
 
-    lines = [f"Категория: {category_name}"]
+    lines = [f"🛠 Категория: {category_name}"]
     if not services:
         lines.append("Пока пусто. Добавьте запись через /add_service")
         lines.append("Формат: /add_service категория | название | контакт | примечание")
@@ -611,10 +612,11 @@ def format_services(category_name: str, services: list[tuple[int, str, str, str 
     for idx, (_, title, contact, notes) in enumerate(services, start=1):
         address = extract_address(notes)
         lines.append(f"{idx}. {title}")
-        lines.append(f"   Контакт: {contact}")
-        lines.append(f"   Google Maps: {maps_link(title, address)}")
+        lines.append(f"   📞 Контакт: {contact}")
+        lines.append(f"   🗺 Google Maps: {maps_link(title, address)}")
         if notes:
-            lines.append(f"   Примечание: {notes}")
+            lines.append(f"   ℹ {notes}")
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -836,38 +838,45 @@ async def reminder_worker(bot: Bot) -> None:
 
 async def cmd_start(message: Message) -> None:
     await message.answer(
-        "Привет! Я Digital Neighbour. Помогу с FAQ, контактами и напоминаниями.",
+        "Привет! Я Digital Neighbour.\n\n"
+        "Помогу с контактами, сервисами и напоминаниями.\n"
+        "Выберите раздел в меню ниже.",
         reply_markup=MAIN_MENU,
     )
 
 
 async def cmd_help(message: Message) -> None:
     await message.answer(
-        "Команды:\n"
-        "/start\n"
-        "/help\n"
-        "/faq\n"
-        "/contacts\n"
-        "/services\n"
-        "/service_category <название>\n"
-        "/add_category <название>\n"
-        "/add_service категория | название | контакт | примечание\n"
-        "/emergency\n"
-        "/set_timezone +/-HH:MM\n"
-        "/my_timezone\n"
-        "/remind HH:MM текст\n"
-        "/remind_once YYYY-MM-DD HH:MM текст\n"
-        "/edit_reminder N HH:MM текст\n"
-        "/edit_once_reminder N YYYY-MM-DD HH:MM текст\n"
-        "/my_reminders\n"
-        "/next_reminders\n"
-        "/nearby_services\n"
-        "/disable_reminder N\n"
-        "/enable_reminder N\n"
-        "/delete_reminder N\n"
-        "/export_reminders\n"
-        "/import_reminders (ответом на JSON/файл .json)\n"
-        "/clear_reminders"
+        "Справка по командам\n\n"
+        "Общее:\n"
+        "• /start\n"
+        "• /help\n"
+        "• /faq\n"
+        "• /contacts\n"
+        "• /emergency\n\n"
+        "Сервисы:\n"
+        "• /services\n"
+        "• /service_category <название>\n"
+        "• /add_category <название>\n"
+        "• /add_service категория | название | контакт | примечание\n"
+        "• /nearby_services\n\n"
+        "Часовой пояс:\n"
+        "• /set_timezone +/-HH:MM\n"
+        "• /my_timezone\n\n"
+        "Напоминания:\n"
+        "• /remind HH:MM текст\n"
+        "• /remind_once YYYY-MM-DD HH:MM текст\n"
+        "• /edit_reminder N HH:MM текст\n"
+        "• /edit_once_reminder N YYYY-MM-DD HH:MM текст\n"
+        "• /my_reminders\n"
+        "• /next_reminders\n"
+        "• /disable_reminder N\n"
+        "• /enable_reminder N\n"
+        "• /delete_reminder N\n"
+        "• /clear_reminders\n\n"
+        "Резервная копия:\n"
+        "• /export_reminders\n"
+        "• /import_reminders (ответом на JSON/файл .json)"
     )
 
 
@@ -883,9 +892,10 @@ async def cmd_services(message: Message) -> None:
 
     names = [name for _, name in categories]
     await message.answer(
-        "Категории сервисов:\n"
-        + "\n".join(f"- {name}" for name in names)
-        + "\n\nОткройте категорию кнопкой ниже или командой /service_category <название>.",
+        "🛠 Категории сервисов\n\n"
+        + "\n".join(f"{idx}. {name}" for idx, name in enumerate(names, start=1))
+        + "\n\nОткройте категорию кнопкой ниже или командой:\n"
+        "/service_category <название>",
         reply_markup=build_service_categories_keyboard(categories),
     )
 
@@ -909,16 +919,17 @@ async def cmd_service_category(message: Message, command: CommandObject) -> None
             live_items = []
 
         if live_items:
-            lines = [f"{DUTY_PHARMACY_CATEGORY} (актуально на сейчас):"]
+            lines = [f"🧪 {DUTY_PHARMACY_CATEGORY} (актуально на сейчас)"]
             for idx, (name, phone, address) in enumerate(live_items, start=1):
                 query = f"{name}, {address}" if address else f"{name}, Limassol, Cyprus"
                 maps_url = "https://www.google.com/maps/search/?api=1&query=" + urlparse.quote(query)
                 lines.append(f"{idx}. {name}")
-                lines.append(f"   Контакт: {phone}")
+                lines.append(f"   📞 Контакт: {phone}")
                 if address:
-                    lines.append(f"   Адрес: {address}")
-                lines.append(f"   Google Maps: {maps_url}")
-            lines.append("\nИсточник: cyprus.ondutypharmacy.com")
+                    lines.append(f"   📍 Адрес: {address}")
+                lines.append(f"   🗺 Google Maps: {maps_url}")
+                lines.append("")
+            lines.append("Источник: cyprus.ondutypharmacy.com")
             await message.answer("\n".join(lines))
             return
         else:
@@ -1007,9 +1018,9 @@ async def cmd_emergency(message: Message) -> None:
 
 
 async def cmd_faq(message: Message) -> None:
-    lines = ["FAQ:"]
+    lines = ["❓ FAQ"]
     for question, answer in FAQ_ITEMS.items():
-        lines.append(f"\n• {question}\n{answer}")
+        lines.append(f"\n• {question}\n  {answer}")
     await message.answer("\n".join(lines))
 
 
@@ -1274,12 +1285,13 @@ async def cmd_next_reminders(message: Message) -> None:
         return
 
     upcoming.sort(key=lambda x: x[0])
-    lines = [f"Ближайшие напоминания ({format_utc_offset(user_offset)}):"]
+    lines = [f"⏰ Ближайшие напоминания ({format_utc_offset(user_offset)})"]
     for idx, (run_local, reminder) in enumerate(upcoming[:10], start=1):
         kind = "one-time" if reminder.is_once else "daily"
         lines.append(
             f"{idx}. [{kind}] {run_local.strftime('%Y-%m-%d %H:%M')} - {reminder.text}"
         )
+        lines.append("")
     if len(upcoming) > 10:
         lines.append(f"... и еще {len(upcoming) - 10}")
 
@@ -1306,13 +1318,14 @@ async def cmd_nearby_services(message: Message) -> None:
         return
 
     collected.sort(key=lambda x: x[0], reverse=True)
-    lines = ["Ближайшие сервисы (Лимассол):"]
+    lines = ["📍 Ближайшие сервисы (Лимассол)"]
     for idx, (rating, category, title, contact, notes) in enumerate(collected[:12], start=1):
         lines.append(f"{idx}. [{category}] {title}")
         if rating > 0:
-            lines.append(f"   Рейтинг: {rating:.1f}")
-        lines.append(f"   Контакт: {contact}")
-        lines.append(f"   Google Maps: {service_maps_link(title, notes)}")
+            lines.append(f"   ⭐ Рейтинг: {rating:.1f}")
+        lines.append(f"   📞 Контакт: {contact}")
+        lines.append(f"   🗺 Google Maps: {service_maps_link(title, notes)}")
+        lines.append("")
     if len(collected) > 12:
         lines.append(f"... и еще {len(collected) - 12}")
 
@@ -1618,16 +1631,17 @@ async def callback_service_category(callback: CallbackQuery) -> None:
 
         if callback.message:
             if live_items:
-                lines = [f"{DUTY_PHARMACY_CATEGORY} (актуально на сейчас):"]
+                lines = [f"🧪 {DUTY_PHARMACY_CATEGORY} (актуально на сейчас)"]
                 for idx, (name, phone, address) in enumerate(live_items, start=1):
                     query = f"{name}, {address}" if address else f"{name}, Limassol, Cyprus"
                     maps_url = "https://www.google.com/maps/search/?api=1&query=" + urlparse.quote(query)
                     lines.append(f"{idx}. {name}")
-                    lines.append(f"   Контакт: {phone}")
+                    lines.append(f"   📞 Контакт: {phone}")
                     if address:
-                        lines.append(f"   Адрес: {address}")
-                    lines.append(f"   Google Maps: {maps_url}")
-                lines.append("\nИсточник: cyprus.ondutypharmacy.com")
+                        lines.append(f"   📍 Адрес: {address}")
+                    lines.append(f"   🗺 Google Maps: {maps_url}")
+                    lines.append("")
+                lines.append("Источник: cyprus.ondutypharmacy.com")
                 await callback.message.answer("\n".join(lines))
             else:
                 services = STORE.list_services_by_category(category_id)
@@ -1717,13 +1731,13 @@ async def main() -> None:
     dp.callback_query.register(callback_toggle_reminder, F.data.startswith("togrem:"))
     dp.callback_query.register(callback_service_category, F.data.startswith("svccat:"))
 
-    dp.message.register(handle_faq_button, F.text == "FAQ")
-    dp.message.register(handle_contacts_button, F.text == "Полезные контакты")
-    dp.message.register(handle_services_button, F.text == "Сервисы")
-    dp.message.register(handle_emergency_button, F.text == "Экстренная помощь")
-    dp.message.register(handle_my_reminders_button, F.text == "Мои напоминания")
-    dp.message.register(handle_next_reminders_button, F.text == "Ближайшие напоминания")
-    dp.message.register(handle_nearby_services_button, F.text == "Ближайшие сервисы")
+    dp.message.register(handle_faq_button, F.text.in_(["FAQ", "❓ FAQ"]))
+    dp.message.register(handle_contacts_button, F.text.in_(["Полезные контакты", "📞 Полезные контакты"]))
+    dp.message.register(handle_services_button, F.text.in_(["Сервисы", "🛠 Сервисы"]))
+    dp.message.register(handle_emergency_button, F.text.in_(["Экстренная помощь", "🆘 Экстренная помощь"]))
+    dp.message.register(handle_my_reminders_button, F.text.in_(["Мои напоминания", "⏰ Мои напоминания"]))
+    dp.message.register(handle_next_reminders_button, F.text.in_(["Ближайшие напоминания", "⏰ Ближайшие напоминания"]))
+    dp.message.register(handle_nearby_services_button, F.text.in_(["Ближайшие сервисы", "📍 Ближайшие сервисы"]))
     dp.message.register(handle_next_reminders_button, F.text == "Ближайшие")
 
     worker = asyncio.create_task(reminder_worker(bot))
