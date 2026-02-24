@@ -63,3 +63,37 @@ MVP-бот соседской помощи на Python + aiogram.
 - Выполните `/export_reminders` и бот отправит файл `.json`.
 - Для восстановления ответьте командой `/import_reminders` на этот файл.
 - Текстовый JSON в ответе тоже поддерживается как резервный вариант.
+
+## Деплой на Railway
+
+Проект готов к деплою на Railway. Подробная инструкция: [`RAILWAY_DEPLOY.md`](RAILWAY_DEPLOY.md)
+
+### Быстрый старт:
+1. Создайте аккаунт на [Railway](https://railway.app)
+2. Подключите GitHub репозиторий
+3. Добавьте переменную окружения `BOT_TOKEN`
+4. Railway автоматически задеплоит бота
+
+### Файлы конфигурации:
+- [`Procfile`](Procfile) - команда запуска
+- [`runtime.txt`](runtime.txt) - версия Python
+- [`railway.json`](railway.json) - настройки Railway
+- [`.railwayignore`](.railwayignore) - исключаемые файлы
+
+## Структура проекта
+
+После рефакторинга проект имеет модульную структуру:
+
+```
+digital_neighbour_bot/
+├── models/              # Модели данных
+├── config/              # Конфигурация
+├── database/            # Работа с БД
+├── utils/               # Утилиты
+├── handlers/            # Обработчики команд
+├── data/                # Статические данные
+├── keyboards/           # Клавиатуры
+└── bot.py               # Главный файл
+```
+
+Подробности: [`REFACTORING_STATUS.md`](REFACTORING_STATUS.md)
