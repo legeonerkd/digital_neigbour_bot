@@ -125,7 +125,7 @@ def build_service_categories_keyboard(categories: list[tuple[int, str]]) -> Inli
     rows = []
     for category_id, name in categories:
         rows.append(
-            [InlineKeyboardButton(text=name, callback_data=f"svccat:{category_id}")]
+            [InlineKeyboardButton(text=name, callback_data=f"category:{category_id}")]
         )
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
